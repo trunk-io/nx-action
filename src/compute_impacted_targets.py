@@ -10,8 +10,16 @@ def log_if_verbose(log):
         print(log)
 
 nx_workspace_path = os.environ.get("WORKSPACE_PATH")
+print(f"Current workspace path is ")
 if nx_workspace_path:
+    print("Found workspace - going to change dir")
+    current_dir = run_command("pwd", return_output=True)
+    print(f"dir before switch is {current_dir}")
     run_command(f"cd {nx_workspace_path}")
+    current_dir = run_command("pwd", return_output=True)
+    print(f"dir after switch is {current_dir}")
+else:
+    print("No dir switch happened")
 
 ls_output = run_command("ls -la", return_output=True)
 print(ls_output)
