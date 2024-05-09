@@ -1,0 +1,54 @@
+name: Trunk Compute Impacted Targets For Nx
+author: trunk.io
+description: Trunk.io Github Action to Compute and Upload Impacted Targets for Nx powered repos
+
+inputs:
+  trunk-token:
+    description: Repo or Organization API token used for authentication. Can be found at app.trunk.io.
+    required: false # Required for any workflow not coming from a forked PR.
+  target-branch:
+    description:
+      The branch that the Merge Queue merges PRs into. If unspecified, defaults to the repository's
+      default branch.
+    required: false
+  verbose:
+    description: Whether to enable verbose logging. Defaults to false.
+    required: false
+  npx-path:
+    description: A path to the Nx executable. Defaults to PATH. If none exists, will use npx instead.
+    required: false
+    default: bazel
+  impact-all-filters-path:
+    description:
+      A path to a list of filters to identify whether `ALL` impacted targets should be considered.
+      See https://github.com/dorny/paths-filter/blob/master/.github/filters.yml for an example. If a
+      PR changes files in any of these paths, then *any* PRs queued after this one will depend on
+      it.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Detect changed paths
+      id: detect-changed-paths
+      if: ${{ inputs.impact-all-filters-path != '' }}
+      uses: dorny/paths-filter@v2
+      with:
+        filters: ${{ inputs.impact-all-filters-path }}
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Prerequisites
+      id: prerequisites
+      run: python ${GITHUB_ACTION_PATH}/src/prerequisites.py
+      shell: bash
+      env:
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        TARGET_BRANCH: ${{ inputs.target-branch }}
+        PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        IMPACTS_FILTERS_CHANGES: ${{ steps.detect-changed-paths.outputs.changes }}
+        VERBOSE: ${{ inputs.verbose }}
