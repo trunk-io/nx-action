@@ -13,6 +13,12 @@ nx_workspace_path = os.environ.get("WORKSPACE_PATH")
 if nx_workspace_path:
     run_command(f"cd {nx_workspace_path}")
 
+ls_output = run_command("ls -la", return_output=True)
+print(ls_output)
+
+current_dir = run_command("pwd", return_output=True)
+print(current_dir)
+
 run_command("npm install --force")
 
 merge_instance_branch = os.environ.get("MERGE_INSTANCE_BRANCH")
