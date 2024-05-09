@@ -36,7 +36,7 @@ if not merge_instance_branch:
 fetch_remote_git_history(merge_instance_branch)
 fetch_remote_git_history(pr_head_sha)
 
-merge_instance_branch_head_sha=run_command(f"git rev-parse 'origin/{merge_instance_branch}", return_output=True)
+merge_instance_branch_head_sha=run_command(f"git rev-parse 'origin/{merge_instance_branch}'", return_output=True)
 if not merge_instance_branch_head_sha:
     print("Could not identify merge instance branch head sha")
     sys.exit(1)
