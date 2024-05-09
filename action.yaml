@@ -14,6 +14,9 @@ inputs:
   verbose:
     description: Whether to enable verbose logging. Defaults to false.
     required: false
+  workspace-path:
+    description: Path to your Nx workspace
+    required: true
   npx-path:
     description: A path to the Nx executable. Defaults to PATH. If none exists, will use npx instead.
     required: false
@@ -51,4 +54,16 @@ runs:
         TARGET_BRANCH: ${{ inputs.target-branch }}
         PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         IMPACTS_FILTERS_CHANGES: ${{ steps.detect-changed-paths.outputs.changes }}
+        VERBOSE: ${{ inputs.verbose }}
+
+    - name: Compute Impacted Targets
+      id: compute-impacted-targets
+      run: python ${GITHUB_ACTION_PATH}/src/compute_impacted_targets.py
+      shell: bash
+      env:
+        MERGE_INSTANCE_BRANCH: ${{ steps.prerequisites.outputs.merge_instance_branch }}
+        MERGE_INSTANCE_BRANCH_HEAD_SHA: ${{ steps.prerequisites.outputs.merge_instance_branch_head_sha }}
+        PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        TRUNK_TOKEN: ${{ inputs.trunk-token }}
+        WORKSPACE_PATH: ${{ inputs.workspace-path }}
         VERBOSE: ${{ inputs.verbose }}
