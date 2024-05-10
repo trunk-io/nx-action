@@ -8,6 +8,7 @@ def run_command(cmd, return_output=False, verbose=False):
     output, error = process.communicate()
 
     if process.returncode != 0:
-        raise Exception(f"Failed to execute the command: {cmd}.\nError: {error.decode()}")
+        error_message = f"Failed to execute the command: {cmd}.\nError: {error.decode()}"
+        raise Exception(error_message)
 
     return output.decode() if return_output else None

@@ -58,6 +58,7 @@ runs:
 
     - name: Compute Impacted Targets
       id: compute-impacted-targets
+      working-directory: ${{ inputs.workspace-path }}
       run: python ${GITHUB_ACTION_PATH}/src/compute_impacted_targets.py
       shell: bash
       env:
