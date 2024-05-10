@@ -33,7 +33,7 @@ fetch_remote_git_history(merge_instance_branch)
 fetch_remote_git_history(pr_head_sha)
 
 merge_instance_branch_head_sha = run_command(
-    f"git rev-parse 'origin/{merge_instance_branch}'",
+    f"git rev-parse origin/{merge_instance_branch}",
     return_output=True,
     verbose=verbose,
 )
