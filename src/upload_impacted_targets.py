@@ -29,7 +29,7 @@ target_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
 repository = get_and_require_env_var("REPOSITORY")
 repository_parts = repository.split("/")
 
-if len(repository_parts):
+if len(repository_parts) != 2:
     print(f"REPOSITORY {repository} is malformed - there should only be one '/' ")
     sys.exit(1)
 
