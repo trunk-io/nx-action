@@ -4,7 +4,8 @@ description: Trunk.io Github Action to Compute and Upload Impacted Targets for N
 
 inputs:
   trunk-token:
-    description: Repo or Organization API token used for authentication. Can be found at app.trunk.io.
+    description:
+      Repo or Organization API token used for authentication. Can be found at app.trunk.io.
     required: false # Required for any workflow not coming from a forked PR.
   target-branch:
     description:
@@ -18,7 +19,8 @@ inputs:
     description: Path to your Nx workspace. If none is provided, will use the root directory.
     required: true
   npx-path:
-    description: A path to the Nx executable. Defaults to PATH. If none exists, will use npx instead.
+    description:
+      A path to the Nx executable. Defaults to PATH. If none exists, will use npx instead.
     required: false
     default: bazel
   impact-all-filters-path:
@@ -44,6 +46,8 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
+        cache: pip
+      run: pip install -r ./src/requirements.txt
 
     - name: Prerequisites
       id: prerequisites
@@ -63,8 +67,25 @@ runs:
       shell: bash
       env:
         MERGE_INSTANCE_BRANCH: ${{ steps.prerequisites.outputs.merge_instance_branch }}
-        MERGE_INSTANCE_BRANCH_HEAD_SHA: ${{ steps.prerequisites.outputs.merge_instance_branch_head_sha }}
+        MERGE_INSTANCE_BRANCH_HEAD_SHA:
+          ${{ steps.prerequisites.outputs.merge_instance_branch_head_sha }}
         PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         TRUNK_TOKEN: ${{ inputs.trunk-token }}
-        WORKSPACE_PATH: ${{ inputs.workspace-path }}
         VERBOSE: ${{ inputs.verbose }}
+
+    - name: Upload Impacted Targets
+      id: upload-impacted-targets
+      run: python ${GITHUB_ACTION_PATH}/src/upload_impacted_targets.py
+      shell: bash
+      env:
+        ACTOR: ${{ github.actor }}
+        API_TOKEN: ${{ inputs.trunk-token }}
+        REPOSITORY: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+        MERGE_INSTANCE_BRANCH: ${{ steps.prerequisites.outputs.merge_instance_branch }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        TRUNK_TOKEN: ${{ inputs.trunk-token }}
+        VERBOSE: ${{ inputs.verbose }}
+        IMPACTED_TARGETS_FILE: ${{ steps.compute-impacted-targets.outputs.impacted_targets_out }}
