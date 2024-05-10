@@ -1,7 +1,13 @@
+import json
 import os
 import sys
 
-from utils import get_and_require_env_var, get_bool_from_string, run_command
+from utils import (
+    get_and_require_env_var,
+    get_bool_from_string,
+    run_command,
+    write_to_github_output,
+)
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
 
@@ -29,6 +35,18 @@ if not merge_instance_branch:
     print("No merge instance branch found. Exiting.")
     sys.exit(1)
 
+# Check if any file specified by the filters in impact-all-filters-path was
+# changed in the PR. If it was, then mark this PR as impacting all other PRs.
+impacts_filters_changes = os.environ.get("IMPACTS_FILTERS_CHANGES")
+if impacts_filters_changes:
+    changes_count = len(json.loads(impacts_filters_changes))
+    if changes_count:
+        log_if_verbose(
+            "Skipping remaining prerequisite steps, as this PR will be marked as impacting all other PRs"
+        )
+        write_to_github_output("impacts_all_detected=true")
+        sys.exit(0)
+
 fetch_remote_git_history(merge_instance_branch)
 fetch_remote_git_history(pr_head_sha)
 
@@ -41,8 +59,7 @@ if not merge_instance_branch_head_sha:
     print("Could not identify merge instance branch head sha")
     sys.exit(1)
 
-github_output = f"merge_instance_branch={merge_instance_branch}\nmerge_instance_branch_head_sha={merge_instance_branch_head_sha}\n"
+github_output = f"merge_instance_branch={merge_instance_branch}\nmerge_instance_branch_head_sha={merge_instance_branch_head_sha}\nimpacts_all_detected=false"
 log_if_verbose(f"Setting these outputs:\n{github_output}")
 
-with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-    f.write(github_output)
+write_to_github_output(github_output)

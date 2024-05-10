@@ -1,7 +1,12 @@
 import json
 import os
 
-from utils import get_and_require_env_var, get_bool_from_string, run_command
+from utils import (
+    get_and_require_env_var,
+    get_bool_from_string,
+    run_command,
+    write_to_github_output,
+)
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
 
@@ -11,6 +16,7 @@ def log_if_verbose(log=""):
         print(log)
 
 
+# Install and build necessary Nx libs.
 run_command("npm install --force")
 
 merge_instance_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
@@ -19,6 +25,8 @@ merge_instance_branch_head_sha = get_and_require_env_var(
 )
 pr_branch_head_sha = get_and_require_env_var("PR_BRANCH_HEAD_SHA")
 
+# Get the list of impacted targets by leveraging Nx's dependency graph capabilities.
+# https://nx.dev/nx-api/nx/documents/dep-graph
 affected_json_out = f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.json"
 nx_graph_command_base = f"npx nx graph --affected --verbose --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
 graph_output = run_command(
@@ -51,5 +59,4 @@ print(f"To replicate this command, run the following:\n{nx_graph_command_base}\n
 github_output = f"impacted_targets_out={impacted_targets_out}\n"
 log_if_verbose(f"Setting these outputs:\n{github_output}\n")
 
-with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-    f.write(github_output)
+write_to_github_output(github_output)

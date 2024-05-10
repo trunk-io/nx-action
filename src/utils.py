@@ -47,3 +47,8 @@ def get_bool_from_string(bool_string):
         return bool_as_int > 0
     except ValueError:
         return False
+
+
+def write_to_github_output(github_output):
+    with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+        f.write(github_output)
