@@ -47,7 +47,8 @@ if not pr_branch_head_sha:
 
 affected_json_out=f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.json"
 
-run_command(f"npx nx graph --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha} --file={affected_json_out}", verbose=verbose)
+graph_output = run_command(f"npx nx graph --affected --verbose --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha} --file={affected_json_out}", verbose=verbose)
+log_if_verbose(graph_output)
 
 affected_json = run_command(f"cat {affected_json_out}", return_output=True)
 print(affected_json)
@@ -60,7 +61,7 @@ num_impacted_projects=run_command(f"wc -l < '{impacted_projects_out}'", return_o
 print(f"Computed {num_impacted_projects} projects for sha {pr_branch_head_sha}")
 
 print("To replicate this command, run the following")
-print(f"npx nx graph --verbose --affected --base='{merge_instance_branch_head_sha}' --head='{pr_branch_head_sha}' --file='${affected_json_out}'")
+print(f"npx nx graph --affected --verbose --affected --base='{merge_instance_branch_head_sha}' --head='{pr_branch_head_sha}' --file='${affected_json_out}'")
 
 impacted_projects = run_command("cat '${impacted_projects_out}'", return_output=True)
 print(impacted_projects)
