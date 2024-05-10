@@ -47,8 +47,3 @@ def get_bool_from_string(bool_string):
         return bool_as_int > 0
     except ValueError:
         return False
-
-
-def log_if_verbose(is_verbose=False, log=""):
-    if is_verbose:
-        print(log)

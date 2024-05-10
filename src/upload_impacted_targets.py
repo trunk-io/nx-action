@@ -1,12 +1,20 @@
 import ast
+import json
 import os
 import sys
 
 import requests
 
-from utils import get_and_require_env_var, get_bool_from_string, log_if_verbose
+from utils import get_and_require_env_var, get_bool_from_string
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
+
+
+def log_if_verbose(log=""):
+    if verbose:
+        print(log)
+
+
 is_fork = get_bool_from_string(os.environ.get("IS_FORK"))
 actor = get_and_require_env_var("ACTOR")
 
@@ -47,10 +55,9 @@ impacted_targets = ast.literal_eval(impacted_targets)
 
 log_if_verbose(f"Read impacted targets: {impacted_targets}")
 
-api_url = os.environ.get("API_URL")
-if not api_url:
-    # trunk-ignore(pylint/C0103)
-    api_url = "https://api.trunk.io:443/v1/setImpactedTargets"
+API_URL = os.environ.get("API_URL")
+if not API_URL:
+    API_URL = "https://api.trunk.io:443/v1/setImpactedTargets"
 
 data = {
     "repo": {"host": "github.com", "owner": repo_owner, "name": repo_name},
@@ -63,8 +70,8 @@ log_if_verbose(f"Sending request body\n{data}\n")
 
 try:
     resp = requests.post(
-        api_url,
-        data,
+        API_URL,
+        data=json.dumps(data),
         headers={
             "Content-Type": "application/json",
             "x-api-token": api_token if api_token else "",
@@ -93,6 +100,12 @@ else:
             print(
                 "❌ Unable to upload impacted targets. Please verify that this bot has access to your repo's token.\n"
             )
+    else:
+        print(
+            f"❌ Unable to upload impacted targets. Encountered {status_code} @ {pr_branch_head_sha}. Please contact us at slack.trunk.io."
+        )
+
     print(f"Response body:\n{resp.text}")
+
 
 sys.exit(EXIT_CODE)

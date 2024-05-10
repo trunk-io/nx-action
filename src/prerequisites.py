@@ -1,14 +1,14 @@
 import os
 import sys
 
-from utils import (
-    get_and_require_env_var,
-    get_bool_from_string,
-    log_if_verbose,
-    run_command,
-)
+from utils import get_and_require_env_var, get_bool_from_string, run_command
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
+
+
+def log_if_verbose(log=""):
+    if verbose:
+        print(log)
 
 
 # NOTE: We cannot assume that the checked out Git repo (e.g. via actions-checkout)
