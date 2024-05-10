@@ -95,7 +95,7 @@ share an impacted target must be tested together; otherwise, they can be tested 
 
 ## Under the hood
 
-We use the Nx CLI to create a dpendency graph that shows all of the affected libraries from the pull
+We use the Nx CLI to create a dependency graph that shows all of the affected libraries from the pull
 request. More information on the command can be found
 [here](https://nx.dev/nx-api/nx/documents/dep-graph)
 
