@@ -25,7 +25,7 @@ if not run_id and is_fork:
     print("No RUN_ID was provided - it is required when the PR is from a fork")
     sys.exit(1)
 
-target_branch = get_and_require_env_var("TARGET_BRANCH")
+target_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
 repository = get_and_require_env_var("REPOSITORY")
 repository_parts = repository.split("/")
 
