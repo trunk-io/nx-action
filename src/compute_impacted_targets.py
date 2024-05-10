@@ -55,7 +55,7 @@ print(affected_json)
 
 # Output Files
 impacted_projects_out=f"./impacted_projects_{pr_branch_head_sha}"
-run_command(f"cmd '{affected_json_out}' | jq -r '.affectedProjects[] | select(length > 0)' >> '${impacted_projects_out}'")
+run_command(f"cat '{affected_json_out}' | jq -r '.affectedProjects[] | select(length > 0)' >> '${impacted_projects_out}'")
 
 num_impacted_projects=run_command(f"wc -l < '{impacted_projects_out}'", return_output=True)
 print(f"Computed {num_impacted_projects} projects for sha {pr_branch_head_sha}")
