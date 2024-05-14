@@ -1,0 +1,30 @@
+name: Update release version
+run-name: Move ${{ github.event.inputs.major_version }} to ${{ github.event.inputs.target }}
+
+permissions: read-all
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: The tag to use
+        required: true
+      major_version:
+        type: choice
+        description: Target major version
+        options:
+          - v1
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Tag new target and push
+        shell: bash
+        run: ${GITHUB_ACTION_PATH}/.github/scripts/update_main_version.sh
+        env:
+          MAJOR_VERSION: ${{ github.event.inputs.major_version }}
+          RELEASE_TARGET: ${{ github.event.inputs.target }}
