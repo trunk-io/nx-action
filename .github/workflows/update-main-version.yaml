@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - name: Tag new target and push
         shell: bash
-        run: ${GITHUB_ACTION_PATH}/.github/scripts/update_main_version.sh
+        run: ${GITHUB_ACTION_PATH}/src/scripts/update_main_version.sh
         env:
           MAJOR_VERSION: ${{ github.event.inputs.major_version }}
           RELEASE_TARGET: ${{ github.event.inputs.target }}
