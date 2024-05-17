@@ -86,10 +86,11 @@ try:
             "x-api-token": api_token if api_token else "",
             "x-forked-workflow-run-id": run_id if run_id else "",
         },
-        timeout=15,
+        timeout=30,
     )
 except requests.exceptions.Timeout:
-    print("Request to upload impacted targets timed out")
+    print("Upload impacted targets timed out. To resolve, re-run this job.")
+    sys.exit(1)
 
 status_code = resp.status_code
 
