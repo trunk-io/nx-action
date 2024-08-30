@@ -1,4 +1,3 @@
-import ast
 import json
 import os
 import sys
@@ -51,7 +50,7 @@ repo_name = repository_parts[1]
 pr_number = get_and_require_env_var("PR_NUMBER")
 pr_branch_head_sha = get_and_require_env_var("PR_BRANCH_HEAD_SHA")
 
-IMPACTED_TARGETS = ""
+IMPACTED_TARGETS: str | list[str] = ""
 impacts_all_detected = get_bool_from_string(
     get_and_require_env_var("IMPACTS_ALL_DETECTED")
 )
@@ -60,7 +59,11 @@ if impacts_all_detected:
 else:
     impacted_targets_file = get_and_require_env_var("IMPACTED_TARGETS_FILE")
     with open(impacted_targets_file, "r", encoding="utf-8") as f:
-        IMPACTED_TARGETS = ast.literal_eval(f.read())
+        content = f.read().strip()
+        if not content:
+            IMPACTED_TARGETS = []
+        else:
+            IMPACTED_TARGETS = content.split("\n")
 
 log_if_verbose(f"Read impacted targets: {IMPACTED_TARGETS}")
 
