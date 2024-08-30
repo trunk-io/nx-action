@@ -28,7 +28,7 @@ pr_branch_head_sha = get_and_require_env_var("PR_BRANCH_HEAD_SHA")
 # https://nx.dev/nx-api/nx/documents/dep-graph
 affected_list_out = f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.txt"
 nx_show_command_base = f"npx nx show projects --affected --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
-affected_output = run_command(nx_show_command_base, verbose=verbose)
+affected_output = run_command(nx_show_command_base, verbose=verbose, return_output=True)
 log_if_verbose(affected_output)
 
 print(f"Impacted projects are:")
