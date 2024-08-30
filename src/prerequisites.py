@@ -61,7 +61,6 @@ if not merge_instance_branch_head_sha:
     print("Could not identify merge instance branch head sha")
     sys.exit(1)
 
-github_output = f"merge_instance_branch={merge_instance_branch}\nmerge_instance_branch_head_sha={merge_instance_branch_head_sha}\nimpacts_all_detected=false"
-log_if_verbose(f"Setting these outputs:\n{github_output}")
+github_output = f"merge_instance_branch_head_sha={merge_instance_branch_head_sha}\nimpacts_all_detected=false"
 
 write_to_github_output(github_output)

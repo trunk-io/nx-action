@@ -8,7 +8,7 @@ from utils import get_and_require_env_var, get_bool_from_string
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
 
-IMPACTS_ALL_KEYWORD = "IMPACTS_ALL"
+IMPACTS_ALL_KEYWORD = "ALL"
 
 
 def log_if_verbose(log=""):
