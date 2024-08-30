@@ -34,7 +34,9 @@ log_if_verbose(affected_output)
 print(f"Impacted projects are:")
 print(affected_output)
 
-affected_projects = affected_output.split("\n")
+affected_projects = []
+if affected_output:
+    affected_projects = affected_output.split("\n")
 
 # Move this to a file so we can pass it to the next action, as this list
 # can be rather large.
