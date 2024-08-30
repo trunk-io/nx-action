@@ -1,4 +1,3 @@
-import json
 import os
 
 from utils import (
@@ -27,33 +26,28 @@ pr_branch_head_sha = get_and_require_env_var("PR_BRANCH_HEAD_SHA")
 
 # Get the list of impacted targets by leveraging Nx's dependency graph capabilities.
 # https://nx.dev/nx-api/nx/documents/dep-graph
-affected_json_out = f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.json"
-nx_graph_command_base = f"npx nx graph --affected --verbose --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
-graph_output = run_command(
-    f"{nx_graph_command_base} --file={affected_json_out}", verbose=verbose
-)
-log_if_verbose(graph_output)
+affected_list_out = f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.txt"
+nx_show_command_base = f"npx nx show projects --affected --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
+affected_output = run_command(nx_show_command_base, verbose=verbose)
+log_if_verbose(affected_output)
 
-affected_json = json.loads(run_command(f"cat {affected_json_out}", return_output=True))
-
-impacted_projects = (
-    affected_json["affectedProjects"] if "affectedProjects" in affected_json else []
-)
 print(f"Impacted projects are:")
-print(*impacted_projects, sep=",\n")
+print(affected_output)
+
+affected_projects = affected_output.split("\n")
 
 # Move this to a file so we can pass it to the next action, as this list
 # can be rather large.
 impacted_targets_out = f"./{merge_instance_branch_head_sha}"
 with open(impacted_targets_out, "w", encoding="utf-8") as f:
-    f.write(f"{impacted_projects}")
+    f.write(f"{affected_output}")
 
-num_impacted_projects = len(impacted_projects)
+num_impacted_projects = len(affected_projects)
 print(
     f"Computed {num_impacted_projects} impacted projects for sha {pr_branch_head_sha}"
 )
 
-print(f"To replicate this command, run the following:\n{nx_graph_command_base}\n")
+print(f"To replicate this command, run the following:\n{nx_show_command_base}\n")
 
 # Outputs
 github_output = f"impacted_targets_out={impacted_targets_out}\n"

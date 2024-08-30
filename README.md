@@ -1,4 +1,4 @@
-# merge-action
+# nx-action
 
 Hosts the code for the [Trunk Merge Queue](https://docs.trunk.io/merge-queue) GitHub Action, which
 makes it easy to upload the required impacted targets for PRs when running your merge queues in
@@ -95,9 +95,9 @@ share an impacted target must be tested together; otherwise, they can be tested 
 
 ## Under the hood
 
-We use the Nx CLI to create a dependency graph that shows all of the affected libraries from the
-pull request. More information on the command can be found
-[here](https://nx.dev/nx-api/nx/documents/dep-graph)
+We use the Nx CLI to show all affected projects betweent the current branch and the tip of main.
+More information on the command
+[can be found here](https://nx.dev/nx-api/nx/documents/show#affected)
 
 ## Questions
 
