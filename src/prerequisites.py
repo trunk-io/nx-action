@@ -35,6 +35,8 @@ if not merge_instance_branch:
     print("No merge instance branch found. Exiting.")
     sys.exit(1)
 
+write_to_github_output(f"merge_instance_branch={merge_instance_branch}")
+
 # Check if any file specified by the filters in impact-all-filters-path was
 # changed in the PR. If it was, then mark this PR as impacting all other PRs.
 impacts_filters_changes = os.environ.get("IMPACTS_FILTERS_CHANGES")
@@ -59,7 +61,6 @@ if not merge_instance_branch_head_sha:
     print("Could not identify merge instance branch head sha")
     sys.exit(1)
 
-github_output = f"merge_instance_branch={merge_instance_branch}\nmerge_instance_branch_head_sha={merge_instance_branch_head_sha}\nimpacts_all_detected=false"
-log_if_verbose(f"Setting these outputs:\n{github_output}")
+github_output = f"merge_instance_branch_head_sha={merge_instance_branch_head_sha}\nimpacts_all_detected=false"
 
 write_to_github_output(github_output)

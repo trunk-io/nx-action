@@ -17,7 +17,7 @@ inputs:
     required: false
   workspace-path:
     description: Path to your Nx workspace. If none is provided, will use the root directory.
-    required: true
+    required: false
   impact-all-filters-path:
     description:
       A path to a list of filters to identify whether `ALL` impacted targets should be considered.
@@ -60,7 +60,7 @@ runs:
     - name: Compute Impacted Targets
       if: ${{ steps.prerequisites.outputs.impacts_all_detected == 'false' }}
       id: compute-impacted-targets
-      working-directory: ${{ inputs.workspace-path }}
+      working-directory: ${{ inputs.workspace-path || '.' }}
       run: python ${GITHUB_ACTION_PATH}/src/compute_impacted_targets.py
       shell: bash
       env:
@@ -73,7 +73,7 @@ runs:
 
     - name: Upload Impacted Targets
       id: upload-impacted-targets
-      working-directory: ${{ inputs.workspace-path }}
+      working-directory: ${{ inputs.workspace-path || '.' }}
       run: python ${GITHUB_ACTION_PATH}/src/upload_impacted_targets.py
       shell: bash
       env:
