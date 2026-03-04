@@ -15,8 +15,17 @@ def log_if_verbose(log=""):
         print(log)
 
 
+# Detect package manager
+if os.path.isfile("pnpm-lock.yaml"):
+    install_cmd = "pnpm install --no-frozen-lockfile"
+    nx_prefix = "pnpm exec nx"
+else:
+    install_cmd = "npm install --force"
+    nx_prefix = "npx nx"
+
 # Install and build necessary Nx libs.
-run_command("npm install --force")
+log_if_verbose(f"Detected package manager, using: {install_cmd}")
+run_command(install_cmd)
 
 merge_instance_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
 merge_instance_branch_head_sha = get_and_require_env_var(
@@ -27,7 +36,7 @@ pr_branch_head_sha = get_and_require_env_var("PR_BRANCH_HEAD_SHA")
 # Get the list of impacted targets by leveraging Nx's dependency graph capabilities.
 # https://nx.dev/nx-api/nx/documents/dep-graph
 affected_list_out = f"./{merge_instance_branch_head_sha}_{pr_branch_head_sha}.txt"
-nx_show_command_base = f"npx nx show projects --affected --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
+nx_show_command_base = f"{nx_prefix} show projects --affected --base={merge_instance_branch_head_sha} --head={pr_branch_head_sha}"
 affected_output = run_command(nx_show_command_base, verbose=verbose, return_output=True)
 
 print(f"Impacted projects are:")
