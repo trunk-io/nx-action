@@ -15,17 +15,39 @@ def log_if_verbose(log=""):
         print(log)
 
 
-# Detect package manager
-if os.path.isfile("pnpm-lock.yaml"):
-    install_cmd = "pnpm install --no-frozen-lockfile"
-    nx_prefix = "pnpm exec nx"
-else:
-    install_cmd = "npm install --force"
-    nx_prefix = "npx nx"
+PACKAGE_MANAGER_COMMANDS = {
+    "pnpm": ("pnpm install --no-frozen-lockfile", "pnpm exec nx"),
+    "yarn": ("yarn install --force", "yarn exec nx"),
+    "npm": ("npm install --force", "npx nx"),
+}
+
+
+def detect_package_manager():
+    # PACKAGE_MANAGER env var overrides lock file detection.
+    override = os.environ.get("PACKAGE_MANAGER", "").strip().lower()
+    if override:
+        if override not in PACKAGE_MANAGER_COMMANDS:
+            raise ValueError(
+                f"Unsupported PACKAGE_MANAGER: {override}. "
+                f"Expected one of: {', '.join(PACKAGE_MANAGER_COMMANDS)}."
+            )
+        return override
+    if os.path.isfile("pnpm-lock.yaml"):
+        return "pnpm"
+    if os.path.isfile("yarn.lock"):
+        return "yarn"
+    return "npm"
+
+
+package_manager = detect_package_manager()
+install_cmd, nx_prefix = PACKAGE_MANAGER_COMMANDS[package_manager]
 
 # Install and build necessary Nx libs.
-log_if_verbose(f"Detected package manager, using: {install_cmd}")
-run_command(install_cmd)
+if get_bool_from_string(os.environ.get("SKIP_INSTALL")):
+    log_if_verbose(f"Detected package manager: {package_manager}. Skipping install.")
+else:
+    log_if_verbose(f"Detected package manager, using: {install_cmd}")
+    run_command(install_cmd)
 
 merge_instance_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
 merge_instance_branch_head_sha = get_and_require_env_var(
