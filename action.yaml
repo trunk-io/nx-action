@@ -26,6 +26,18 @@ inputs:
       it.
     required: false
     default: ""
+  package-manager:
+    description:
+      The package manager to use (one of `pnpm`, `yarn`, `npm`). If unspecified, will be detected
+      from the lock file present in the workspace.
+    required: false
+    default: ""
+  skip-install:
+    description:
+      Whether to skip the package manager install step. Useful when packages have already been
+      installed in a prior step. Defaults to false.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -70,6 +82,8 @@ runs:
         PR_BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         TRUNK_TOKEN: ${{ inputs.trunk-token }}
         VERBOSE: ${{ inputs.verbose }}
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+        SKIP_INSTALL: ${{ inputs.skip-install }}
 
     - name: Upload Impacted Targets
       id: upload-impacted-targets
