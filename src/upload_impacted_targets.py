@@ -1,10 +1,14 @@
 import json
 import os
 import sys
+import time
 
 import requests
 
 from utils import get_and_require_env_var, get_bool_from_string
+
+MAX_RETRIES = 4
+INITIAL_BACKOFF_SECONDS = 2
 
 verbose = get_bool_from_string(os.environ.get("VERBOSE"))
 
@@ -80,8 +84,13 @@ data = {
 
 log_if_verbose(f"Sending request body\n{data}\n")
 
-try:
-    resp = requests.post(
+
+def is_retryable_status(status_code: int) -> bool:
+    return status_code >= 500
+
+
+def make_request():
+    return requests.post(
         API_URL,
         data=json.dumps(data),
         headers={
@@ -91,8 +100,36 @@ try:
         },
         timeout=30,
     )
-except requests.exceptions.Timeout:
-    print("Upload impacted targets timed out. To resolve, re-run this job.")
+
+
+resp = None
+last_exception = None
+
+for attempt in range(MAX_RETRIES + 1):
+    try:
+        resp = make_request()
+        if not is_retryable_status(resp.status_code):
+            break
+        if attempt < MAX_RETRIES:
+            backoff = INITIAL_BACKOFF_SECONDS * (2**attempt)
+            log_if_verbose(
+                f"Received {resp.status_code}, retrying in {backoff}s (attempt {attempt + 1}/{MAX_RETRIES + 1})"
+            )
+            time.sleep(backoff)
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+        last_exception = e
+        if attempt < MAX_RETRIES:
+            backoff = INITIAL_BACKOFF_SECONDS * (2**attempt)
+            log_if_verbose(
+                f"Request failed with {type(e).__name__}, retrying in {backoff}s (attempt {attempt + 1}/{MAX_RETRIES + 1})"
+            )
+            time.sleep(backoff)
+
+if resp is None:
+    error_type = type(last_exception).__name__ if last_exception else "Unknown error"
+    print(
+        f"Upload impacted targets failed after {MAX_RETRIES + 1} attempts ({error_type}). To resolve, re-run this job."
+    )
     sys.exit(1)
 
 status_code = resp.status_code
