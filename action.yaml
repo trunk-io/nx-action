@@ -38,6 +38,15 @@ inputs:
       installed in a prior step. Defaults to false.
     required: false
     default: ""
+  nx-bin:
+    description:
+      A command or path used to invoke Nx (for example a pre-installed `nx` shim). When set, the
+      action runs `nx show projects` with this instead of the detected package manager, and it
+      skips the package manager install step. Computing impacted targets needs the project graph,
+      not installed dependencies, so no install is required. Useful when Nx is provided outside the
+      workspace `node_modules`.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -84,6 +93,7 @@ runs:
         VERBOSE: ${{ inputs.verbose }}
         PACKAGE_MANAGER: ${{ inputs.package-manager }}
         SKIP_INSTALL: ${{ inputs.skip-install }}
+        NX_BIN: ${{ inputs.nx-bin }}
 
     - name: Upload Impacted Targets
       id: upload-impacted-targets

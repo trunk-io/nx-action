@@ -39,15 +39,23 @@ def detect_package_manager():
     return "npm"
 
 
-package_manager = detect_package_manager()
-install_cmd, nx_prefix = PACKAGE_MANAGER_COMMANDS[package_manager]
-
-# Install and build necessary Nx libs.
-if get_bool_from_string(os.environ.get("SKIP_INSTALL")):
-    log_if_verbose(f"Detected package manager: {package_manager}. Skipping install.")
+# A caller may provide its own Nx (for example a shim installed outside the
+# workspace node_modules). Computing impacted targets reads the project graph,
+# not installed dependencies, so no package manager install is needed then.
+nx_bin = os.environ.get("NX_BIN", "").strip()
+if nx_bin:
+    nx_prefix = nx_bin
+    log_if_verbose(f"Using provided Nx binary: {nx_bin}. Skipping install.")
 else:
-    log_if_verbose(f"Detected package manager, using: {install_cmd}")
-    run_command(install_cmd)
+    package_manager = detect_package_manager()
+    install_cmd, nx_prefix = PACKAGE_MANAGER_COMMANDS[package_manager]
+
+    # Install and build necessary Nx libs.
+    if get_bool_from_string(os.environ.get("SKIP_INSTALL")):
+        log_if_verbose(f"Detected package manager: {package_manager}. Skipping install.")
+    else:
+        log_if_verbose(f"Detected package manager, using: {install_cmd}")
+        run_command(install_cmd)
 
 merge_instance_branch = get_and_require_env_var("MERGE_INSTANCE_BRANCH")
 merge_instance_branch_head_sha = get_and_require_env_var(
