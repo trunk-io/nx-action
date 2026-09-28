@@ -75,6 +75,12 @@ jobs:
 
 <!-- end usage -->
 
+Run this action on `pull_request`, never `pull_request_target`. The package manager installs the
+checked-out code's dependencies (running its install scripts) and Nx loads its project graph; that
+code must be the pull request's for a correct result. Under `pull_request_target` a fork's code
+would run with this repository's secrets, its OIDC identity and, unless `permissions` narrows it, a
+write-scoped `GITHUB_TOKEN`.
+
 For more information on each possible argument you can provide, see
 [action.yaml](https://github.com/trunk-io/nx-action/blob/main/action.yaml)
 
@@ -109,9 +115,6 @@ jobs:
   commit. An organization admin must turn on **Fork PR CI access** for the repository in Trunk
   (Settings → Repositories). GitHub may hold a first-time contributor's run until a maintainer
   approves it.
-- Run it on `pull_request`, never `pull_request_target`: the action builds the pull request's code,
-  and under `pull_request_target` a fork's code would run with this repository's secrets and a
-  write-scoped token.
 - The login can only upload impacted targets for this repository. Every other Trunk API refuses it.
 
 `auth` defaults to `trunk-token`, so existing workflows are unchanged until they opt in. The login
