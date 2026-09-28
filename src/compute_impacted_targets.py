@@ -72,9 +72,7 @@ affected_output = run_command(nx_show_command_base, verbose=verbose, return_outp
 print(f"Impacted projects are:")
 print(affected_output)
 
-affected_projects = []
-if affected_output:
-    affected_projects = affected_output.split("\n")
+affected_projects = [line for line in affected_output.splitlines() if line.strip()]
 
 # Move this to a file so we can pass it to the next action, as this list
 # can be rather large.
