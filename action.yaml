@@ -3,10 +3,23 @@ author: trunk.io
 description: Trunk.io Github Action to Compute and Upload Impacted Targets for Nx powered repos
 
 inputs:
+  auth:
+    description: >-
+      How the upload authenticates. `trunk-token` (default) uses the trunk-token input.
+      `github-actions` logs in with the run's own GitHub credential through trunk-io/login: no Trunk
+      secret, pull requests from forks included. It needs `permissions: id-token: write` on the job,
+      and for fork PRs, Fork PR CI access turned on for the repository in Trunk.
+    required: false
+    default: trunk-token
+  trunk-api-url:
+    description: >-
+      The Trunk API root for `auth: github-actions`. Change it only for Trunk's staging environment.
+    required: false
+    default: https://api.trunk.io/v2
   trunk-token:
     description:
       Repo or Organization API token used for authentication. Can be found at app.trunk.io.
-    required: false # Required for any workflow not coming from a forked PR.
+    required: false # Required unless auth is github-actions or the workflow comes from a forked PR.
   target-branch:
     description:
       The branch that the Merge Queue merges PRs into. If unspecified, defaults to the repository's
@@ -41,9 +54,9 @@ inputs:
   nx-bin:
     description:
       A command or path used to invoke Nx (for example a pre-installed `nx` shim). When set, the
-      action runs `nx show projects` with this instead of the detected package manager, and it
-      skips the package manager install step. Computing impacted targets needs the project graph,
-      not installed dependencies, so no install is required. Useful when Nx is provided outside the
+      action runs `nx show projects` with this instead of the detected package manager, and it skips
+      the package manager install step. Computing impacted targets needs the project graph, not
+      installed dependencies, so no install is required. Useful when Nx is provided outside the
       workspace `node_modules`.
     required: false
     default: ""
@@ -51,6 +64,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate auth
+      if: ${{ inputs.auth != 'trunk-token' && inputs.auth != 'github-actions' }}
+      shell: bash
+      run: |
+        echo "::error::auth must be trunk-token or github-actions"
+        exit 1
+
     - name: Install Python
       uses: actions/setup-python@v5
       with:
@@ -97,6 +117,7 @@ runs:
 
     - name: Upload Impacted Targets
       id: upload-impacted-targets
+      if: ${{ inputs.auth != 'github-actions' }}
       working-directory: ${{ inputs.workspace-path || '.' }}
       run: python ${GITHUB_ACTION_PATH}/src/upload_impacted_targets.py
       shell: bash
@@ -113,3 +134,24 @@ runs:
         VERBOSE: ${{ inputs.verbose }}
         IMPACTS_ALL_DETECTED: ${{ steps.prerequisites.outputs.impacts_all_detected }}
         IMPACTED_TARGETS_FILE: ${{ steps.compute-impacted-targets.outputs.impacted_targets_out }}
+
+    - name: Log in to Trunk
+      if: ${{ inputs.auth == 'github-actions' }}
+      uses: trunk-io/login@dd43b5c040326ee204a3d1f18f5522a717466ce2 # main; move to v1 once tagged
+      with:
+        api-url: ${{ inputs.trunk-api-url }}
+
+    - name: Upload Impacted Targets (GitHub Actions login)
+      if: ${{ inputs.auth == 'github-actions' }}
+      # The targets file path is relative to the workspace.
+      working-directory: ${{ inputs.workspace-path || '.' }}
+      run: ${GITHUB_ACTION_PATH}/src/scripts/upload_impacted_targets_github_actions.sh
+      shell: bash
+      env:
+        # Lets a long fork-PR job renew its login.
+        GITHUB_TOKEN: ${{ github.token }}
+        TARGET_BRANCH: ${{ steps.prerequisites.outputs.merge_instance_branch }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_SHA: ${{ github.event.pull_request.head.sha }}
+        IMPACTED_TARGETS_FILE: ${{ steps.compute-impacted-targets.outputs.impacted_targets_out }}
+        IMPACTS_ALL_DETECTED: ${{ steps.prerequisites.outputs.impacts_all_detected }}
